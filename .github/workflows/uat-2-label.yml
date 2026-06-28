@@ -31,8 +31,9 @@ jobs:
 
       - name: 部署到 UAT
         run: |
-          echo "✅ 部署分支 ${{ github.head_ref }} 到 UAT"
-          # 這裡放你真正的 UAT 部署指令
+          echo "嘗試部署分支 ${{ github.head_ref }} 到 UAT..."
+          echo "❌ 模擬部署失敗（例如測試不過 / 服務啟動失敗）"
+          exit 1
 
       - name: 移除標籤（標記已處理，可再點一次重新部署）
         if: always()
