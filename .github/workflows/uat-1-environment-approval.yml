@@ -1,0 +1,31 @@
+name: UAT-1 環境核准按鈕
+
+# 做法一：環境核准按鈕（最接近原生圖形按鈕）
+# 原理：deploy job 綁定 environment: uat，且該環境在 GitHub 設定了 Required reviewers。
+#       每次有 PR 時，這個 job 會自動「暫停等待核准」，
+#       管理者會在 PR / Actions 頁面看到綠色的「Review deployments」按鈕，
+#       按下「Approve and deploy」後才會真正部署該 PR 的分支到 UAT。
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+# 同一時間 UAT 只跑一個部署，後到的排隊（不取消進行中的）
+concurrency:
+  group: uat-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy-uat:
+    runs-on: ubuntu-latest
+    environment: uat        # ← 關鍵：綁定需要核准的環境
+    steps:
+      - name: Checkout 該 PR 的分支
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: 部署到 UAT
+        run: |
+          echo "✅ 部署分支 ${{ github.head_ref }} 到 UAT"
+          # 這裡放你真正的 UAT 部署指令

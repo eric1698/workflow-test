@@ -1,0 +1,14 @@
+name: 正式機部署（merge 到 main 觸發）
+
+# 你目前已做好的正式機部署，這裡放一個範例佔位，方便驗證整個流程。
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 部署到正式機
+        run: echo "🚀 部署 main 到正式機"
