@@ -1,21 +1,22 @@
-name: UAT-2 Label 標籤觸發
+name: UAT Label 部署
 
-# 做法二：加 Label 觸發部署
-# 原理：當管理者在 PR 點選 `deploy-uat` 這個標籤時觸發，
-#       部署完成後自動把標籤移除（方便下次再加一次重新部署），並回寫一則留言。
+# 用「加 Label」觸發部署到 UAT（無留言、無 email 版本）
+# 操作：在想部署的 PR 點選 `deploy-uat` 標籤即可。
+# 回饋：部署完成後自動移除標籤（代表已處理，可再點一次重新部署）；
+#       成功/失敗直接看 Actions run 的綠勾/紅叉，不產生任何留言、不寄 email。
 
 on:
   pull_request:
     types: [labeled]
 
+# 共用 UAT：同一時間只部署一個分支，後到的排隊
 concurrency:
   group: uat-deploy
   cancel-in-progress: false
 
 permissions:
   contents: read
-  pull-requests: write
-  issues: write
+  pull-requests: write   # 移除標籤需要
 
 jobs:
   deploy-uat:
@@ -33,7 +34,8 @@ jobs:
           echo "✅ 部署分支 ${{ github.head_ref }} 到 UAT"
           # 這裡放你真正的 UAT 部署指令
 
-      - name: 移除標籤（讓下次可重新觸發）
+      - name: 移除標籤（標記已處理，可再點一次重新部署）
+        if: always()
         uses: actions/github-script@v7
         with:
           script: |
@@ -43,14 +45,3 @@ jobs:
               issue_number: context.issue.number,
               name: 'deploy-uat'
             }).catch(() => {});
-
-      - name: 回報結果到 PR
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: `✅ 目前 UAT 上的是分支 \`${{ github.head_ref }}\``
-            });
